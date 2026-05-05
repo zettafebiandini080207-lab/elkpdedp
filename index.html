@@ -1,0 +1,696 @@
+<!doctype html>
+<html lang="id" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>E-LKPD Kincir Angin Kargo</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="/_sdk/data_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&amp;family=Comic+Neue:wght@400;700&amp;display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            'fredoka': ['Fredoka', 'sans-serif'],
+            'comic': ['Comic Neue', 'cursive']
+          },
+          colors: {
+            'sky-bright': '#0EA5E9',
+            'sky-light': '#E0F2FE',
+            'sky-mid': '#7DD3FC',
+            'grass': '#22C55E',
+            'sun': '#FBBF24'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    html, body { height: 100%; margin: 0; }
+    * { box-sizing: border-box; }
+    .wind-bg {
+      background: linear-gradient(180deg, #0EA5E9 0%, #7DD3FC 30%, #E0F2FE 60%, #ECFDF5 100%);
+    }
+    .card-style {
+      background: rgba(255,255,255,0.95);
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(14,165,233,0.15);
+      backdrop-filter: blur(10px);
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #0EA5E9, #0284C7);
+      color: white;
+      border-radius: 50px;
+      padding: 12px 28px;
+      font-weight: 600;
+      transition: all 0.3s;
+      border: none;
+      cursor: pointer;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(14,165,233,0.4); }
+    .btn-secondary {
+      background: linear-gradient(135deg, #22C55E, #16A34A);
+      color: white;
+      border-radius: 50px;
+      padding: 10px 24px;
+      font-weight: 600;
+      transition: all 0.3s;
+      border: none;
+      cursor: pointer;
+    }
+    .section-title {
+      background: linear-gradient(135deg, #0EA5E9, #0284C7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+    @keyframes spin-slow { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+    @keyframes cloud-move { 0%{transform:translateX(-100%)} 100%{transform:translateX(calc(100% + 200px))} }
+    .float-anim { animation: float 3s ease-in-out infinite; }
+    .spin-slow { animation: spin-slow 8s linear infinite; }
+    .cloud { animation: cloud-move 20s linear infinite; }
+    .cloud2 { animation: cloud-move 28s linear infinite; animation-delay: -8s; }
+    .nav-dot { width: 10px; height: 10px; border-radius: 50%; background: #CBD5E1; transition: all 0.3s; }
+    .nav-dot.active { background: #0EA5E9; width: 28px; border-radius: 5px; }
+    textarea, input[type="text"] {
+      border: 2px solid #E0F2FE;
+      border-radius: 12px;
+      padding: 12px;
+      width: 100%;
+      font-family: 'Comic Neue', cursive;
+      font-size: 14px;
+      transition: border-color 0.3s;
+      resize: vertical;
+    }
+    textarea:focus, input[type="text"]:focus { border-color: #0EA5E9; outline: none; box-shadow: 0 0 0 3px rgba(14,165,233,0.1); }
+    .radio-option {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px; border: 2px solid #E0F2FE;
+      border-radius: 12px; cursor: pointer; transition: all 0.2s;
+      font-family: 'Comic Neue', cursive;
+    }
+    .radio-option:hover { border-color: #7DD3FC; background: #F0F9FF; }
+    .radio-option.selected { border-color: #0EA5E9; background: #E0F2FE; }
+    .step-badge {
+      background: linear-gradient(135deg, #0EA5E9, #0284C7);
+      color: white; border-radius: 50%; width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 14px; flex-shrink: 0;
+    }
+    .letter-paper {
+      background: #FFFEF7;
+      border: 2px solid #D4A574;
+      border-radius: 4px;
+      padding: 24px;
+      position: relative;
+      font-family: 'Comic Neue', cursive;
+      line-height: 1.8;
+    }
+    .letter-paper::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 6px;
+      background: repeating-linear-gradient(90deg, #D4A574, #D4A574 10px, transparent 10px, transparent 20px);
+    }
+    .toast {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      background: #065F46; color: white; padding: 12px 24px;
+      border-radius: 50px; font-family: 'Fredoka', sans-serif;
+      z-index: 9999; opacity: 0; transition: opacity 0.3s;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; }
+    .score-display {
+      background: linear-gradient(135deg, #FBBF24, #F59E0B);
+      border-radius: 16px; padding: 20px; text-align: center; color: white;
+    }
+    .windmill-svg { width: 60px; height: 60px; }
+  </style>
+  <style>body { box-sizing: border-box; }</style>
+ </head>
+ <body class="h-full font-comic">
+  <div id="app" class="h-full w-full wind-bg overflow-auto relative">
+   <!-- Clouds -->
+   <div class="fixed top-8 left-0 opacity-40 cloud pointer-events-none" style="z-index:1;">
+    <svg width="80" height="40" viewbox="0 0 80 40"><ellipse cx="40" cy="25" rx="35" ry="15" fill="white" /><ellipse cx="25" cy="20" rx="20" ry="12" fill="white" /><ellipse cx="55" cy="18" rx="18" ry="11" fill="white" />
+    </svg>
+   </div>
+   <div class="fixed top-20 left-0 opacity-30 cloud2 pointer-events-none" style="z-index:1;">
+    <svg width="60" height="30" viewbox="0 0 60 30"><ellipse cx="30" cy="18" rx="25" ry="12" fill="white" /><ellipse cx="18" cy="14" rx="15" ry="9" fill="white" />
+    </svg>
+   </div><!-- Main Content -->
+   <div id="content" class="relative z-10 px-4 py-6 max-w-lg mx-auto w-full" style="min-height:100%;">
+    <!-- Pages will be rendered here -->
+   </div><!-- Bottom Navigation -->
+   <div class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-sky-200 px-4 py-3 z-50">
+    <div class="max-w-lg mx-auto flex items-center justify-between">
+     <button id="btn-prev" onclick="prevPage()" class="flex items-center gap-1 text-sky-600 font-fredoka font-semibold text-sm disabled:opacity-30" disabled> <i data-lucide="chevron-left" style="width:18px;height:18px;"></i> Kembali </button>
+     <div id="nav-dots" class="flex gap-1.5 items-center"></div><button id="btn-next" onclick="nextPage()" class="flex items-center gap-1 text-sky-600 font-fredoka font-semibold text-sm"> Lanjut <i data-lucide="chevron-right" style="width:18px;height:18px;"></i> </button>
+    </div>
+   </div><!-- Toast -->
+   <div id="toast" class="toast"></div>
+  </div>
+  <script>
+    // ============ CONFIG & STATE ============
+    const defaultConfig = {
+      main_title: 'E-LKPD Kincir Angin Kargo',
+      teacher_name: 'Guru IPA',
+      background_color: '#0EA5E9',
+      surface_color: '#FFFFFF',
+      text_color: '#1E293B',
+      primary_action_color: '#0EA5E9',
+      secondary_action_color: '#22C55E',
+      font_family: 'Fredoka',
+      font_size: 16
+    };
+
+    let currentPage = 0;
+    let studentData = { name: '', class: '' };
+    let answers = {};
+    let allRecords = [];
+    const TOTAL_PAGES = 10;
+
+    // ============ ELEMENT SDK ============
+    window.elementSdk.init({
+      defaultConfig,
+      onConfigChange: async (config) => {
+        document.documentElement.style.setProperty('--primary', config.background_color || defaultConfig.background_color);
+        renderCurrentPage();
+      },
+      mapToCapabilities: (config) => ({
+        recolorables: [
+          { get: () => config.background_color || defaultConfig.background_color, set: (v) => { config.background_color = v; window.elementSdk.setConfig({ background_color: v }); } },
+          { get: () => config.surface_color || defaultConfig.surface_color, set: (v) => { config.surface_color = v; window.elementSdk.setConfig({ surface_color: v }); } },
+          { get: () => config.text_color || defaultConfig.text_color, set: (v) => { config.text_color = v; window.elementSdk.setConfig({ text_color: v }); } },
+          { get: () => config.primary_action_color || defaultConfig.primary_action_color, set: (v) => { config.primary_action_color = v; window.elementSdk.setConfig({ primary_action_color: v }); } },
+          { get: () => config.secondary_action_color || defaultConfig.secondary_action_color, set: (v) => { config.secondary_action_color = v; window.elementSdk.setConfig({ secondary_action_color: v }); } }
+        ],
+        borderables: [],
+        fontEditable: { get: () => config.font_family || defaultConfig.font_family, set: (v) => { config.font_family = v; window.elementSdk.setConfig({ font_family: v }); } },
+        fontSizeable: { get: () => config.font_size || defaultConfig.font_size, set: (v) => { config.font_size = v; window.elementSdk.setConfig({ font_size: v }); } }
+      }),
+      mapToEditPanelValues: (config) => new Map([
+        ['main_title', config.main_title || defaultConfig.main_title],
+        ['teacher_name', config.teacher_name || defaultConfig.teacher_name]
+      ])
+    });
+
+    // ============ DATA SDK ============
+    const dataHandler = {
+      onDataChanged(data) {
+        allRecords = data;
+      }
+    };
+    window.dataSdk.init(dataHandler);
+
+    // ============ TOAST ============
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    // ============ NAVIGATION ============
+    function updateNav() {
+      const prev = document.getElementById('btn-prev');
+      const next = document.getElementById('btn-next');
+      prev.disabled = currentPage === 0;
+      next.style.display = currentPage === TOTAL_PAGES - 1 ? 'none' : 'flex';
+      const dots = document.getElementById('nav-dots');
+      dots.innerHTML = '';
+      for (let i = 0; i < TOTAL_PAGES; i++) {
+        const d = document.createElement('div');
+        d.className = 'nav-dot' + (i === currentPage ? ' active' : '');
+        d.onclick = () => { currentPage = i; renderCurrentPage(); };
+        dots.appendChild(d);
+      }
+    }
+
+    function nextPage() {
+      if (currentPage === 0) {
+        const name = document.getElementById('input-name');
+        const cls = document.getElementById('input-class');
+        if (name && cls) {
+          if (!name.value.trim() || !cls.value.trim()) { showToast('Isi nama dan kelas dulu ya! 📝'); return; }
+          studentData.name = name.value.trim();
+          studentData.class = cls.value.trim();
+        }
+      }
+      if (currentPage < TOTAL_PAGES - 1) { currentPage++; renderCurrentPage(); }
+    }
+    function prevPage() { if (currentPage > 0) { currentPage--; renderCurrentPage(); } }
+
+    // ============ SAVE ANSWER ============
+    async function saveAnswer(section, answer) {
+      if (allRecords.length >= 999) { showToast('Penyimpanan penuh!'); return; }
+      const result = await window.dataSdk.create({
+        student_name: studentData.name,
+        student_class: studentData.class,
+        section: section,
+        answer: answer,
+        score: 0,
+        timestamp: new Date().toISOString()
+      });
+      if (result.isOk) { showToast('Jawaban tersimpan! ✅'); }
+      else { showToast('Gagal menyimpan, coba lagi'); }
+    }
+
+    // ============ WINDMILL SVG ============
+    function windmillSVG(size = 60) {
+      return `<svg width="${size}" height="${size}" viewBox="0 0 100 100" class="spin-slow">
+        <rect x="48" y="45" width="4" height="50" fill="#8B5E3C" rx="2"/>
+        <circle cx="50" cy="45" r="5" fill="#475569"/>
+        <path d="M50 45 L50 10 L60 40 Z" fill="#0EA5E9" opacity="0.9"/>
+        <path d="M50 45 L80 55 L55 55 Z" fill="#38BDF8" opacity="0.9"/>
+        <path d="M50 45 L50 80 L40 50 Z" fill="#0284C7" opacity="0.9"/>
+        <path d="M50 45 L20 35 L45 35 Z" fill="#7DD3FC" opacity="0.9"/>
+      </svg>`;
+    }
+
+    // ============ PAGE RENDERERS ============
+    const pages = [
+      // Page 0: Cover & Identity
+      () => `
+        <div class="text-center mb-6">
+          <div class="float-anim inline-block mb-4">${windmillSVG(80)}</div>
+          <h1 class="font-fredoka text-2xl font-bold section-title mb-2">E-LKPD</h1>
+          <h2 class="font-fredoka text-lg font-semibold text-sky-700 mb-1">Kincir Angin Kargo</h2>
+          <p class="text-sm text-sky-600 mb-1">Berbasis Project Based Learning</p>
+          <p class="text-xs text-slate-500">Pendekatan Engineering Design Process</p>
+          <div class="mt-2 inline-block bg-sky-100 px-3 py-1 rounded-full text-xs font-semibold text-sky-700">IPA Kelas VIII SMP/MTs</div>
+        </div>
+        <div class="card-style p-5 mb-4">
+          <p class="text-sm font-semibold text-slate-700 mb-3 font-fredoka">👋 Hai! Isi data dirimu:</p>
+          <label class="block text-xs font-semibold text-slate-600 mb-1" for="input-name">Nama Lengkap</label>
+          <input type="text" id="input-name" placeholder="Tulis namamu..." value="${studentData.name}" class="mb-3">
+          <label class="block text-xs font-semibold text-slate-600 mb-1" for="input-class">Kelas</label>
+          <input type="text" id="input-class" placeholder="Contoh: VIII-A" value="${studentData.class}">
+        </div>
+        <div class="text-center">
+          <div class="text-xs text-slate-500">Guru Pengampu: <strong>${window.elementSdk.config.teacher_name || defaultConfig.teacher_name}</strong></div>
+          <div class="text-xs text-slate-400 mt-1">Semester Genap 2024/2025</div>
+        </div>
+      `,
+
+      // Page 1: Kata Pengantar
+      () => `
+        <div class="card-style p-5">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="step-badge">📖</div>
+            <h2 class="font-fredoka text-lg font-bold text-sky-800">Kata Pengantar</h2>
+          </div>
+          <div class="text-sm text-slate-700 space-y-3 leading-relaxed">
+            <p>Assalamu'alaikum Wr. Wb.</p>
+            <p>Puji syukur kehadirat Allah SWT yang telah melimpahkan rahmat-Nya sehingga E-LKPD <strong>"Kincir Angin Kargo"</strong> ini dapat disusun dengan baik.</p>
+            <p>E-LKPD ini dirancang sebagai panduan belajar berbasis proyek <em>(Project Based Learning)</em> dengan pendekatan <strong>Engineering Design Process (EDP)</strong> untuk membantu kalian memahami konsep energi kinetik angin dan penerapannya dalam teknologi sederhana.</p>
+            <p>Melalui proyek ini, kalian akan berperan sebagai <strong>insinyur muda</strong> yang merancang solusi nyata bagi para petani di daerah perbukitan. Kalian akan belajar mengidentifikasi masalah, merancang solusi, membuat prototipe, menguji, dan menyempurnakan desain.</p>
+            <p>Semoga E-LKPD ini bermanfaat dalam mengembangkan keterampilan berpikir kritis, kreatif, kolaboratif, dan komunikatif kalian.</p>
+            <p>Wassalamu'alaikum Wr. Wb.</p>
+            <p class="text-right font-semibold mt-4">${window.elementSdk.config.teacher_name || defaultConfig.teacher_name}<br><span class="font-normal text-xs text-slate-500">Guru IPA</span></p>
+          </div>
+        </div>
+      `,
+
+      // Page 2: CP & Tujuan
+      () => `
+        <div class="card-style p-5 mb-4">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="step-badge">🎯</div>
+            <h2 class="font-fredoka text-lg font-bold text-sky-800">Capaian & Tujuan</h2>
+          </div>
+          <div class="bg-sky-50 rounded-xl p-4 mb-4">
+            <h3 class="font-fredoka text-sm font-bold text-sky-700 mb-2">📋 Capaian Pembelajaran (CP)</h3>
+            <p class="text-xs text-slate-700 leading-relaxed">Peserta didik mampu menerapkan konsep energi dan perubahannya (energi kinetik, energi potensial, dan usaha) dalam merancang solusi teknologi sederhana untuk menyelesaikan permasalahan di lingkungan sekitar melalui proses rekayasa (Engineering Design Process).</p>
+          </div>
+          <div class="bg-green-50 rounded-xl p-4">
+            <h3 class="font-fredoka text-sm font-bold text-green-700 mb-2">🏆 Tujuan Pembelajaran</h3>
+            <ol class="text-xs text-slate-700 space-y-2 list-decimal pl-4 leading-relaxed">
+              <li>Mengidentifikasi masalah nyata terkait pemanfaatan energi angin untuk transportasi barang</li>
+              <li>Menjelaskan konsep energi kinetik angin dan konversinya menjadi energi mekanik</li>
+              <li>Merancang desain kincir angin kargo menggunakan prinsip EDP</li>
+              <li>Membuat prototipe kincir angin yang mampu mengangkat beban</li>
+              <li>Menguji, mengevaluasi, dan menyempurnakan desain prototipe</li>
+              <li>Mengkomunikasikan hasil proyek secara lisan dan tertulis</li>
+            </ol>
+          </div>
+        </div>
+      `,
+
+      // Page 3: Surat Klien (Masalah)
+      () => `
+        <div class="card-style p-5 mb-4">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="step-badge">✉️</div>
+            <h2 class="font-fredoka text-lg font-bold text-sky-800">Surat dari Klien</h2>
+          </div>
+          <p class="text-xs text-slate-500 mb-3 italic">📬 Kalian menerima surat berikut dari seorang klien yang membutuhkan bantuan...</p>
+          <div class="letter-paper text-sm">
+            <p class="text-right text-xs text-slate-500 mb-3">Desa Angin Sejuk, 15 Januari 2025</p>
+            <p class="mb-2"><strong>Kepada Yth.</strong><br>Tim Insinyur Muda Kelas VIII<br>SMP Nusantara Hebat</p>
+            <p class="mb-2">Dengan hormat,</p>
+            <p class="mb-2">Perkenalkan, nama saya <strong>Pak Tani Surya</strong>, ketua kelompok tani "Maju Bersama" di Desa Angin Sejuk. Desa kami terletak di daerah perbukitan dengan lahan perkebunan yang luas dan kontur tanah yang tidak rata.</p>
+            <p class="mb-2">Kami menghadapi <strong>masalah besar</strong> dalam mengangkut hasil panen (sayur-mayur, buah-buahan) dari kebun di atas bukit ke gudang penyimpanan di bawah, serta mendistribusikan pupuk dari gudang ke kebun. Jaraknya sekitar 200-500 meter dengan kemiringan cukup tajam.</p>
+            <p class="mb-2"><strong>Kondisi yang kami alami:</strong></p>
+            <ul class="list-disc pl-5 mb-2 text-xs space-y-1">
+              <li>Pengangkutan manual sangat menguras tenaga (butuh 3-4 orang)</li>
+              <li>Memakan waktu 2-3 jam untuk satu kali angkut</li>
+              <li>Biaya sewa kendaraan sangat mahal (Rp500.000/hari)</li>
+              <li>Jalan setapak sempit, tidak bisa dilalui kendaraan besar</li>
+              <li>Desa kami memiliki <strong>angin yang cukup kencang</strong> sepanjang tahun (rata-rata 15-25 km/jam)</li>
+            </ul>
+            <p class="mb-2">Kami dengar kalian sedang belajar tentang energi angin di sekolah. Bisakah kalian membantu kami merancang <strong>alat pengangkut barang bertenaga angin</strong> yang bisa memindahkan beban 5-10 kg melewati lintasan miring? Kami butuh solusi yang hemat biaya, ramah lingkungan, dan mudah dirawat.</p>
+            <p class="mb-2">Kami sangat berharap bantuan dari tim insinyur muda!</p>
+            <p class="mt-4">Hormat kami,<br><strong>Pak Tani Surya</strong><br><em>Ketua Kelompok Tani "Maju Bersama"</em></p>
+            <div class="mt-3 text-xs bg-amber-50 border border-amber-200 rounded-lg p-2">
+              📎 Lampiran: Foto lokasi kebun dan data kecepatan angin harian
+              <div class="mt-2 rounded-lg overflow-hidden bg-white">
+                <img src="https://cdn1.katadata.co.id/media/images/thumb/2022/10/25/SUMBER_DAYA_ALAM_DATARAN_TINGGI-2022_10_25-15_00_27_648842f3bf9a8617353b90d5976c392e_960x640_thumb.jpg" alt="Foto lokasi kebun dataran tinggi" loading="lazy" style="width:100%; height:auto; display:block;" onerror="console.error('Image failed to load:', this.src); this.style.background='#e5e7eb'; this.alt='Foto kebun tidak tersedia';"/>
+              </div>
+              <div class="mt-1 text-xs text-amber-700 font-semibold">Data Angin: Rata-rata 15-25 km/jam | Musim kemarau hingga musim hujan</div>
+            </div>
+          </div>
+        </div>
+      `,
+
+      // Page 4: EDP Step 1 - Define Problem
+      () => `
+        <div class="card-style p-5 mb-4">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="step-badge">1</div>
+            <div>
+              <h2 class="font-fredoka text-base font-bold text-sky-800">Define the Problem</h2>
+              <p class="text-xs text-slate-500">Mendefinisikan Masalah</p>
+            </div>
+          </div>
+          <div class="bg-sky-50 rounded-xl p-3 mb-4 text-xs text-slate-700">
+            <p class="font-semibold mb-1">💡 Petunjuk:</p>
+            <p>Setelah membaca surat dari Pak Tani Surya, identifikasi dan rumuskan masalah utama yang perlu diselesaikan. Gunakan kalimat kalian sendiri!</p>
+          </div>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">1. Siapa yang mengalami masalah? (Klien)</label>
+              <textarea id="edp1-q1" rows="2" placeholder="Tuliskan siapa klien dan kondisinya..." oninput="answers['edp1_q1']=this.value">${answers['edp1_q1'] || ''}</textarea>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">2. Apa masalah utamanya?</label>
+              <textarea id="edp1-q2" rows="2" placeholder="Rumuskan masalah inti..." oninput="answers['edp1_q2']=this.value">${answers['edp1_q2'] || ''}</textarea>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">3. Apa batasan (constraints) yang ada?</label>
+              <textarea id="edp1-q3" rows="2" placeholder="Sebutkan batasan: biaya, bahan, lokasi..." oninput="answers['edp1_q3']=this.value">${answers['edp1_q3'] || ''}</textarea>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">4. Apa kriteria keberhasilan solusi?</label>
+              <textarea id="edp1-q4" rows="2" placeholder="Solusi berhasil jika..." oninput="answers['edp1_q4']=this.value">${answers['edp1_q4'] || ''}</textarea>
+            </div>
+            <button class="btn-secondary w-full text-sm" onclick="saveSection('edp1')">💾 Simpan Jawaban Step 1</button>
+          </div>
+        </div>
+      `,
+
+      // Page 5: EDP Step 2 - Research & Brainstorm
+      () => `
+        <div class="card-style p-5 mb-4">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="step-badge">2</div>
+            <div>
+              <h2 class="font-fredoka text-base font-bold text-sky-800">Research & Brainstorm</h2>
+              <p class="text-xs text-slate-500">Riset & Curah Pendapat</p>
+            </div>
+          </div>
+          <div class="bg-amber-50 rounded-xl p-3 mb-4 text-xs text-slate-700">
+            <p class="font-semibold mb-1">📚 Materi Pendukung:</p>
+            <ul class="list-disc pl-4 space-y-1">
+              <li><strong>Energi Kinetik Angin:</strong> EK = ½ × ρ × A × v³</li>
+              <li><strong>Kincir Angin:</strong> Mengubah energi kinetik → energi mekanik putar</li>
+              <li><strong>Sistem Katrol:</strong> Mengurangi gaya yang dibutuhkan untuk mengangkat beban</li>
+              <li><strong>Transmisi:</strong> Gear/roda gigi mengubah kecepatan putar & torsi</li>
+            </ul>
+          </div>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">1. Bagaimana kincir angin mengubah energi angin menjadi gerakan?</label>
+              <textarea id="edp2-q1" rows="2" placeholder="Jelaskan proses konversi energi..." oninput="answers['edp2_q1']=this.value">${answers['edp2_q1'] || ''}</textarea>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">2. Komponen apa saja yang diperlukan untuk membuat kincir angin kargo?</label>
+              <textarea id="edp2-q2" rows="2" placeholder="Daftar komponen: baling-baling, poros, ..." oninput="answers['edp2_q2']=this.value">${answers['edp2_q2'] || ''}</textarea>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">3. Tuliskan 3 ide desain yang berbeda!</label>
+              <textarea id="edp2-q3" rows="4" placeholder="Ide 1: ...\nIde 2: ...\nIde 3: ..." oninput="answers['edp2_q3']=this.value">${answers['edp2_q3'] || ''}</textarea>
+            </div>
+            <button class="btn-secondary w-full text-sm" onclick="saveSection('edp2')">💾 Simpan Jawaban Step 2</button>
+          </div>
+        </div>
+      `,
+
+      // Page 6: EDP Step 3 - Design & Plan
+      () => `
+        <div class="card-style p-5 mb-4">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="step-badge">3</div>
+            <div>
+              <h2 class="font-fredoka text-base font-bold text-sky-800">Design & Plan</h2>
+              <p class="text-xs text-slate-500">Merancang & Merencanakan</p>
+            </div>
+          </div>
+          <div class="bg-sky-50 rounded-xl p-3 mb-4 text-xs text-slate-700">
+            <p class="font-semibold mb-1">✏️ Petunjuk:</p>
+            <p>Pilih ide terbaik dari brainstorm dan kembangkan menjadi desain detail. Gambarkan sketsa dan buat rencana pembuatan.</p>
+          </div>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">1. Ide mana yang kalian pilih? Mengapa?</label>
+              <textarea id="edp3-q1" rows="2" placeholder="Kami memilih ide... karena..." oninput="answers['edp3_q1']=this.value">${answers['edp3_q1'] || ''}</textarea>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">2. Deskripsikan desain kalian secara detail:</label>
+              <textarea id="edp3-q2" rows="3" placeholder="Bentuk baling-baling, ukuran, mekanisme katrol..." oninput="answers['edp3_q2']=this.value">${answers['edp3_q2'] || ''}</textarea>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">3. Bahan dan alat yang dibutuhkan:</label>
+              <textarea id="edp3-q3" rows="3" placeholder="- Kardus/triplek untuk baling-baling\n- Tali/benang\n- ..." oninput="answers['edp3_q3']=this.value">${answers['edp3_q3'] || ''}</textarea>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">4. Langkah-langkah pembuatan:</label>
+              <textarea id="edp3-q4" rows="4" placeholder="1. Membuat baling-baling...\n2. Memasang poros...\n3. ..." oninput="answers['edp3_q4']=this.value">${answers['edp3_q4'] || ''}</textarea>
+            </div>
+            <button class="btn-secondary w-full text-sm" onclick="saveSection('edp3')">💾 Simpan Jawaban Step 3</button>
+          </div>
+        </div>
+      `,
+
+      // Page 7: EDP Step 4 - Build & Test
+      () => `
+        <div class="card-style p-5 mb-4">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="step-badge">4</div>
+            <div>
+              <h2 class="font-fredoka text-base font-bold text-sky-800">Build & Test</h2>
+              <p class="text-xs text-slate-500">Membangun & Menguji</p>
+            </div>
+          </div>
+          <div class="bg-green-50 rounded-xl p-3 mb-4 text-xs text-slate-700">
+            <p class="font-semibold mb-1">🔧 Petunjuk:</p>
+            <p>Bangun prototipe sesuai rencana. Lakukan pengujian dan catat hasilnya! Gunakan kipas angin sebagai sumber angin buatan.</p>
+          </div>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">1. Dokumentasi proses pembuatan (ceritakan):</label>
+              <textarea id="edp4-q1" rows="3" placeholder="Langkah yang kami lakukan..." oninput="answers['edp4_q1']=this.value">${answers['edp4_q1'] || ''}</textarea>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">2. Hasil Pengujian:</label>
+              <div class="bg-white border-2 border-sky-100 rounded-xl p-3 space-y-2">
+                <div class="flex items-center gap-2 text-xs">
+                  <span class="font-semibold w-32">Beban diangkat:</span>
+                  <input type="text" id="edp4-load" placeholder="...gram" class="flex-1" style="padding:8px;" oninput="answers['edp4_load']=this.value" value="${answers['edp4_load'] || ''}">
+                </div>
+                <div class="flex items-center gap-2 text-xs">
+                  <span class="font-semibold w-32">Tinggi angkat:</span>
+                  <input type="text" id="edp4-height" placeholder="...cm" class="flex-1" style="padding:8px;" oninput="answers['edp4_height']=this.value" value="${answers['edp4_height'] || ''}">
+                </div>
+                <div class="flex items-center gap-2 text-xs">
+                  <span class="font-semibold w-32">Waktu angkat:</span>
+                  <input type="text" id="edp4-time" placeholder="...detik" class="flex-1" style="padding:8px;" oninput="answers['edp4_time']=this.value" value="${answers['edp4_time'] || ''}">
+                </div>
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">3. Apakah prototipe berhasil? Jelaskan!</label>
+              <textarea id="edp4-q3" rows="2" placeholder="Berhasil/tidak karena..." oninput="answers['edp4_q3']=this.value">${answers['edp4_q3'] || ''}</textarea>
+            </div>
+            <button class="btn-secondary w-full text-sm" onclick="saveSection('edp4')">💾 Simpan Jawaban Step 4</button>
+          </div>
+        </div>
+      `,
+
+      // Page 8: EDP Step 5 - Improve & Communicate
+      () => `
+        <div class="card-style p-5 mb-4">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="step-badge">5</div>
+            <div>
+              <h2 class="font-fredoka text-base font-bold text-sky-800">Improve & Communicate</h2>
+              <p class="text-xs text-slate-500">Memperbaiki & Mengkomunikasikan</p>
+            </div>
+          </div>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">1. Apa kelemahan prototipe kalian?</label>
+              <textarea id="edp5-q1" rows="2" placeholder="Kelemahan yang kami temukan..." oninput="answers['edp5_q1']=this.value">${answers['edp5_q1'] || ''}</textarea>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">2. Perbaikan apa yang kalian lakukan?</label>
+              <textarea id="edp5-q2" rows="2" placeholder="Kami memperbaiki..." oninput="answers['edp5_q2']=this.value">${answers['edp5_q2'] || ''}</textarea>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">3. Hasil setelah perbaikan:</label>
+              <textarea id="edp5-q3" rows="2" placeholder="Setelah diperbaiki, hasilnya..." oninput="answers['edp5_q3']=this.value">${answers['edp5_q3'] || ''}</textarea>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">4. Kesimpulan & rekomendasi untuk Pak Tani Surya:</label>
+              <textarea id="edp5-q4" rows="3" placeholder="Berdasarkan proyek ini, kami merekomendasikan..." oninput="answers['edp5_q4']=this.value">${answers['edp5_q4'] || ''}</textarea>
+            </div>
+            <button class="btn-secondary w-full text-sm" onclick="saveSection('edp5')">💾 Simpan Jawaban Step 5</button>
+          </div>
+        </div>
+      `,
+
+      // Page 9: Evaluasi (Quiz)
+      () => {
+        const quizHTML = renderQuiz();
+        return `
+          <div class="card-style p-5 mb-4">
+            <div class="flex items-center gap-2 mb-4">
+              <div class="step-badge">📝</div>
+              <h2 class="font-fredoka text-lg font-bold text-sky-800">Evaluasi Akhir</h2>
+            </div>
+            <p class="text-xs text-slate-500 mb-4">Jawab 10 soal berikut untuk mengukur pemahamanmu! Pilih jawaban yang paling tepat.</p>
+            ${quizHTML}
+            <div id="quiz-result" class="mt-4 hidden"></div>
+            <button class="btn-primary w-full text-sm mt-4" onclick="submitQuiz()">🎯 Cek Nilai</button>
+          </div>
+        `;
+      }
+    ];
+
+    // ============ QUIZ DATA ============
+    const quizQuestions = [
+      { q: "Energi kinetik angin bergantung pada faktor berikut, KECUALI...", options: ["Kecepatan angin", "Massa jenis udara", "Warna baling-baling", "Luas sapuan baling-baling"], answer: 2 },
+      { q: "Rumus energi kinetik angin adalah...", options: ["EK = m × g × h", "EK = ½ × ρ × A × v³", "EK = ½ × m × v²", "EK = F × s"], answer: 1 },
+      { q: "Fungsi utama kincir angin adalah...", options: ["Mengubah energi listrik menjadi energi gerak", "Mengubah energi kinetik angin menjadi energi mekanik", "Mengubah energi panas menjadi energi gerak", "Mengubah energi potensial menjadi energi kinetik"], answer: 1 },
+      { q: "Sistem katrol pada kincir angin kargo berfungsi untuk...", options: ["Mempercepat putaran kincir", "Mengubah arah gaya dan mengurangi usaha", "Menambah kecepatan angin", "Menyimpan energi listrik"], answer: 1 },
+      { q: "Jika kecepatan angin menjadi 2 kali lipat, energi kinetik angin menjadi...", options: ["2 kali lipat", "4 kali lipat", "8 kali lipat", "16 kali lipat"], answer: 2 },
+      { q: "Langkah pertama dalam Engineering Design Process adalah...", options: ["Membuat prototipe", "Mendefinisikan masalah", "Menguji produk", "Brainstorming"], answer: 1 },
+      { q: "Bahan yang paling tepat untuk baling-baling kincir angin sederhana adalah...", options: ["Kertas tipis", "Kardus tebal/triplek ringan", "Besi tebal", "Kaca"], answer: 1 },
+      { q: "Keuntungan kincir angin kargo dibanding kendaraan bermotor adalah...", options: ["Lebih cepat", "Ramah lingkungan & hemat biaya operasional", "Bisa mengangkut beban lebih berat", "Tidak perlu perawatan"], answer: 1 },
+      { q: "Apa yang dimaksud dengan 'constraint' dalam EDP?", options: ["Tujuan akhir proyek", "Batasan yang harus diperhatikan dalam desain", "Langkah terakhir proses desain", "Bahan yang digunakan"], answer: 1 },
+      { q: "Proses iterasi dalam EDP artinya...", options: ["Membuat desain sekali jadi", "Mengulangi dan menyempurnakan desain berdasarkan pengujian", "Membatalkan proyek", "Mengcopy desain orang lain"], answer: 1 }
+    ];
+
+    let quizAnswers = {};
+
+    function renderQuiz() {
+      return quizQuestions.map((q, i) => `
+        <div class="mb-4 pb-4 ${i < quizQuestions.length - 1 ? 'border-b border-sky-100' : ''}">
+          <p class="text-sm font-semibold text-slate-700 mb-2">${i + 1}. ${q.q}</p>
+          <div class="space-y-2">
+            ${q.options.map((opt, j) => `
+              <div class="radio-option ${quizAnswers[i] === j ? 'selected' : ''}" onclick="selectQuiz(${i}, ${j}, this)">
+                <div class="w-5 h-5 rounded-full border-2 ${quizAnswers[i] === j ? 'border-sky-500 bg-sky-500' : 'border-slate-300'} flex items-center justify-center flex-shrink-0">
+                  ${quizAnswers[i] === j ? '<div class="w-2 h-2 rounded-full bg-white"></div>' : ''}
+                </div>
+                <span class="text-xs">${opt}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function selectQuiz(qIndex, optIndex, el) {
+      quizAnswers[qIndex] = optIndex;
+      // Re-render just this question's options
+      const parent = el.parentElement;
+      const options = parent.querySelectorAll('.radio-option');
+      options.forEach((opt, j) => {
+        opt.classList.toggle('selected', j === optIndex);
+        const circle = opt.querySelector('div');
+        if (j === optIndex) {
+          circle.className = 'w-5 h-5 rounded-full border-2 border-sky-500 bg-sky-500 flex items-center justify-center flex-shrink-0';
+          circle.innerHTML = '<div class="w-2 h-2 rounded-full bg-white"></div>';
+        } else {
+          circle.className = 'w-5 h-5 rounded-full border-2 border-slate-300 flex items-center justify-center flex-shrink-0';
+          circle.innerHTML = '';
+        }
+      });
+    }
+
+    async function submitQuiz() {
+      const answered = Object.keys(quizAnswers).length;
+      if (answered < 10) { showToast(`Jawab semua soal dulu! (${answered}/10)`); return; }
+
+      let score = 0;
+      quizQuestions.forEach((q, i) => { if (quizAnswers[i] === q.answer) score++; });
+      const finalScore = score * 10;
+
+      const resultDiv = document.getElementById('quiz-result');
+      resultDiv.classList.remove('hidden');
+
+      let emoji = finalScore >= 80 ? '🎉' : finalScore >= 60 ? '👍' : '💪';
+      let msg = finalScore >= 80 ? 'Luar biasa! Kamu menguasai materi ini!' : finalScore >= 60 ? 'Bagus! Terus belajar ya!' : 'Jangan menyerah! Pelajari lagi materinya.';
+
+      resultDiv.innerHTML = `
+        <div class="score-display">
+          <div class="text-4xl mb-2">${emoji}</div>
+          <div class="text-3xl font-fredoka font-bold">${finalScore}</div>
+          <div class="text-sm opacity-90">dari 100</div>
+          <div class="text-xs mt-2 opacity-80">${msg}</div>
+          <div class="text-xs mt-1 opacity-70">Benar: ${score}/10</div>
+        </div>
+      `;
+
+      // Save score
+      if (allRecords.length < 999) {
+        await window.dataSdk.create({
+          student_name: studentData.name,
+          student_class: studentData.class,
+          section: 'evaluasi',
+          answer: JSON.stringify(quizAnswers),
+          score: finalScore,
+          timestamp: new Date().toISOString()
+        });
+      }
+    }
+
+    // ============ SAVE SECTION ============
+    async function saveSection(section) {
+      const sectionAnswers = {};
+      Object.keys(answers).forEach(k => { if (k.startsWith(section)) sectionAnswers[k] = answers[k]; });
+      const answerStr = JSON.stringify(sectionAnswers);
+      if (answerStr === '{}') { showToast('Isi jawaban dulu ya! ✍️'); return; }
+      await saveAnswer(section, answerStr);
+    }
+
+    // ============ RENDER ============
+    function renderCurrentPage() {
+      const content = document.getElementById('content');
+      content.innerHTML = pages[currentPage]();
+      updateNav();
+      lucide.createIcons();
+      content.scrollTop = 0;
+      window.scrollTo(0, 0);
+    }
+
+    renderCurrentPage();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9f70eaaad62efdfc',t:'MTc3Nzk5NjM5Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
